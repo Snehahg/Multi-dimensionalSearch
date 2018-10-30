@@ -60,9 +60,9 @@ public class MDS {
 	public int insert(long id, Money price, java.util.List<Long> list) {
 		
 		Product product = keyMap.get(id);
-		byte result =0;
+		boolean result =false;
 		if(product==null) {
-			result=1;
+			result=true;
 			product =new Product(price,list);
 			keyMap.put(id, product); // Add the product to the treemap
 		}else {
@@ -105,7 +105,7 @@ public class MDS {
 				descSet.add(id);
 		}
 		printMaps();
-		return result;
+		return result?1:0;
 	}
 
 	private void printMaps() {
