@@ -66,10 +66,12 @@ public class MDS {
 	public int insert(long id, Money price, java.util.List<Long> list) {
 
 		Product product = keyMap.get(id);
-		byte result = 0;// to store return values
-		if (product == null) {// when no entry
-			result = 1;
-			product = new Product(price, list);
+
+		boolean result =false;
+		if(product==null) {
+			result=true;
+			product =new Product(price,list);
+
 			keyMap.put(id, product); // Add the product to the treemap
 		} else {// when entry already exists
 			Money oldPrice = product.getPrice();
@@ -119,11 +121,10 @@ public class MDS {
 				descSet.add(id);
 		}
 		printMaps();
-		return result;
+		return result?1:0;
 	}
 
 	private void printMaps() {
-		// TODO Auto-generated method stub
 		System.out.println("KeyMap : " + keyMap.size());
 		for (Long id : keyMap.keySet()) {
 			System.out.print(id + " : " + keyMap.get(id).price + "\t");
@@ -204,7 +205,21 @@ public class MDS {
 	 * is no such item.
 	 */
 	public Money findMinPrice(long n) {
-		return new Money();
+		TreeSet<Long> descSet = descMap.get(n);
+		Money lowest = new Money(Long.MAX_VALUE+"");
+		Money price;
+		if(descSet == null) {
+			return new Money();
+		}else {
+			for(Long id : descSet) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				if(!(price.compareTo(lowest)>0)) {
+					lowest = price;
+				}
+			}
+		}
+		return lowest;
 	}
 
 	/*
@@ -213,7 +228,21 @@ public class MDS {
 	 * if there is no such item.
 	 */
 	public Money findMaxPrice(long n) {
-		return new Money();
+		TreeSet<Long> descSet = descMap.get(n);
+		Money highest = new Money(Long.MIN_VALUE+"");
+		Money price;
+		if(descSet == null) {
+			return new Money();
+		}else {
+			for(Long id : descSet) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				if(!(price.compareTo(highest)<0)) {
+					highest = price;
+				}
+			}
+		}
+		return highest;
 	}
 
 	/*
@@ -231,7 +260,21 @@ public class MDS {
 	 * of items. Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
-		return new Money();
+		Money price,netIncrease;
+		Double increasedPrice = 0.0,increase = 0.0,sum = 0.0;
+		for(Long id : keyMap.keySet()) {
+			if(id>=l && id<=h) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				increase = Double.parseDouble(price.toString())*rate/100;
+				increasedPrice = Double.parseDouble(price.toString())+increase;
+				price = new Money(increasedPrice+"");
+				product.setPrice(price);
+				sum += increase;
+				}
+		}
+		netIncrease = new Money(sum+"");
+		return netIncrease;
 	}
 
 	/*
