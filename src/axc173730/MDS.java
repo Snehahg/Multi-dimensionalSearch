@@ -162,7 +162,21 @@ public class MDS {
        Return 0 if there is no such item.
 	 */
 	public Money findMinPrice(long n) {
-		return new Money();
+		TreeSet<Long> descSet = descMap.get(n);
+		Money lowest = new Money(Long.MAX_VALUE+"");
+		Money price;
+		if(descSet == null) {
+			return new Money();
+		}else {
+			for(Long id : descSet) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				if(!(price.compareTo(lowest)>0)) {
+					lowest = price;
+				}
+			}
+		}
+		return lowest;
 	}
 
 	/* 
@@ -171,7 +185,21 @@ public class MDS {
        Return 0 if there is no such item.
 	 */
 	public Money findMaxPrice(long n) {
-		return new Money();
+		TreeSet<Long> descSet = descMap.get(n);
+		Money highest = new Money(Long.MIN_VALUE+"");
+		Money price;
+		if(descSet == null) {
+			return new Money();
+		}else {
+			for(Long id : descSet) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				if(!(price.compareTo(highest)<0)) {
+					highest = price;
+				}
+			}
+		}
+		return highest;
 	}
 
 	/* 
