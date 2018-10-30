@@ -217,7 +217,21 @@ public class MDS {
        prices of items.  Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
-		return new Money();
+		Money price,netIncrease;
+		Double increasedPrice = 0.0,increase = 0.0,sum = 0.0;
+		for(Long id : keyMap.keySet()) {
+			if(id>=l && id<=h) {
+				Product product = keyMap.get(id);
+				price = product.getPrice();
+				increase = Double.parseDouble(price.toString())*rate/100;
+				increasedPrice = Double.parseDouble(price.toString())+increase;
+				price = new Money(increasedPrice+"");
+				product.setPrice(price);
+				sum += increase;
+				}
+		}
+		netIncrease = new Money(sum+"");
+		return netIncrease;
 	}
 
 	/*
