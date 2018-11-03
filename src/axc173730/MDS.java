@@ -77,7 +77,7 @@ public class MDS {
 			Money oldPrice = product.getPrice();
 			List<Long> oldDescList = product.getDescription();
 			product.setPrice(price);
-			if (list != null)
+			if (list!=null && !list.isEmpty())
 				product.setDescription(list);
 
 			if (!oldPrice.equals(price)) { // if new price is different, remove
@@ -89,17 +89,8 @@ public class MDS {
 					priceMap.remove(oldPrice);
 			}
 
-			for (Long desc : oldDescList) { // remove the old description list
-				TreeSet<Long> descSet = descMap.get(desc);
-				if (descSet != null) {
-					descSet.remove(id);
-					if (descSet.size() == 0) // if a particular description
-												// value does not have any ids,
-												// remove the description value
-												// from hashmap
-						descMap.remove(desc);
-				}
-			}
+			if(list!=null && !list.isEmpty())
+				removeDesc(id,oldDescList);
 		}
 		// adding the id to the new price's tree set
 		TreeSet<Long> priceSet = priceMap.get(price);
@@ -120,8 +111,24 @@ public class MDS {
 			} else
 				descSet.add(id);
 		}
-		printMaps();
+		//printMaps();
 		return result?1:0;
+	}
+
+	private void removeDesc(long id, List<Long> oldDescList) {
+		
+		for (Long desc : oldDescList) { // remove the old description list
+			TreeSet<Long> descSet = descMap.get(desc);
+			if (descSet != null) {
+				descSet.remove(id);
+				if (descSet.size() == 0) // if a particular description
+											// value does not have any ids,
+											// remove the description value
+											// from hashmap
+					descMap.remove(desc);
+			}
+		}
+		
 	}
 
 	private void printMaps() {
@@ -194,7 +201,7 @@ public class MDS {
 				priceMap.remove(Price);
 
 		}
-		printMaps();
+		//printMaps();
 		return descSum;
 	}
 
@@ -314,7 +321,7 @@ public class MDS {
 				}
 				
 		}
-		printMaps();
+		//printMaps();
 		return sum;
 	}
 
