@@ -251,7 +251,17 @@ public class MDS {
 	 * within the given range, [low, high].
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
-		return 0;
+		int result = 0;
+		// get all ids matching given description
+		TreeSet<Long> idsMatchingDesc = descMap.get(n);
+		// for every id, get the price and check if it falls in range
+		for (Long id : idsMatchingDesc) {
+			Money price = keyMap.get(id).price;
+			if (price.compareTo(low) >= 0 && price.compareTo(high) < 0) {
+				result++;
+			}
+		}
+		return result;
 	}
 
 	/*
