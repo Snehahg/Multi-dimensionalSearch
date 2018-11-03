@@ -5,6 +5,8 @@
 // Change to your net id
 package axc173730;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +46,8 @@ public class MDS {
 		public void setDescription(List<Long> description) {
 			this.description = new LinkedList<>(description);
 		}
+		
+		
 
 	}
 
@@ -270,6 +274,22 @@ public class MDS {
 		}
 		return result;
 	}
+	
+	private void updatePrice(Money price, long id) {
+		TreeSet<Long> priceSet = priceMap.get(price);
+		if (priceSet == null) {
+			priceSet = new TreeSet<>();
+			priceSet.add(id);
+			priceMap.put(price, priceSet);
+		} else
+			priceSet.add(id); // update the ids on new price
+	}
+	private void removePrice(Money price, long id) {
+		TreeSet<Long> priceSet = priceMap.get(price);
+		priceSet.remove(id);
+		if (priceSet.size() == 0)
+			priceMap.remove(price);
+	}
 
 	/*
 	 * g. PriceHike(l,h,r): increase the price of every product, whose id is in
@@ -278,19 +298,24 @@ public class MDS {
 	 */
 	public Money priceHike(long l, long h, double rate) {
 		Money price,netIncrease;
-		Double increasedPrice = 0.0,increase = 0.0,sum = 0.0;
+		Double increasedPrice = 0.0,increase = 0.0,sum = 0.0,in = 0.0;
 		for(Long id : keyMap.keySet()) {
 			if(id>=l && id<=h) {
 				Product product = keyMap.get(id);
 				price = product.getPrice();
-				increase = Double.parseDouble(price.toString())*rate/100;
-				increasedPrice = Double.parseDouble(price.toString())+increase;
-				price = new Money(increasedPrice+"");
+				double priceInDouble = price.getMoney();
+				increase = priceInDouble*rate/(double)100;
+				increasedPrice = priceInDouble+increase;
+				removePrice(price,id);
+				
+				price = new Money(Money.format(increasedPrice)+"");
+				updatePrice(price,id);
 				product.setPrice(price);
-				sum += increase;
+				sum = Money.format(sum)+ increase;
 				}
 		}
-		netIncrease = new Money(sum+"");
+		//System.out.println(" Sum : "+sum+" formatted : "+Money.format(sum));
+		netIncrease = new Money(Money.format(sum)+"");
 		return netIncrease;
 	}
 
@@ -382,6 +407,19 @@ public class MDS {
 		public int hashCode() {
 
 			return this.toString().hashCode();
+		}
+		
+		public double getMoney() {
+
+			double price =  ((double)(this.dollars()*100+this.cents())/(double)100);
+			
+			return format(price);
+			//return price;
+		}
+		public static double format(double price) {
+			DecimalFormat f = new DecimalFormat("##.##");
+			f.setRoundingMode(RoundingMode.FLOOR);
+			return Double.parseDouble(f.format(price));
 		}
 	}
 
