@@ -6,10 +6,13 @@
 package axc173730;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 // If you want to create additional classes, place them in this file as subclasses of MDS
 
@@ -19,7 +22,6 @@ public class MDS {
 	TreeMap<Long, Product> keyMap;
 	HashMap<Money, TreeSet<Long>> priceMap;
 	HashMap<Long, TreeSet<Long>> descMap;
-
 	private class Product {
 		private Money price;
 		private List<Long> description;
@@ -46,6 +48,34 @@ public class MDS {
 		}
 
 	}
+//	private class Product {
+//		private Money price;
+//		private Set<Long> description;
+//
+//		public Product(Money price, List<Long> list) {
+//			this.price = price;
+//			this.description = new HashSet<>(list);
+//		}
+//
+//		public Money getPrice() {
+//			return price;
+//		}
+//
+//		public void setPrice(Money price) {
+//			this.price = price;
+//		}
+//
+//		public Set<Long> getDescription() {
+//			return description;
+//		}
+//
+//		public void setDescription(List<Long> description) {
+//			this.description = new HashSet<>(description);
+//		}
+//
+//		
+//
+//	}
 
 	// Constructors
 	public MDS() {
@@ -65,8 +95,9 @@ public class MDS {
 	 */
 	public int insert(long id, Money price, java.util.List<Long> list) {
 
+		List<Long> deduped = list.stream().distinct().collect(Collectors.toList());
+		list = deduped;
 		Product product = keyMap.get(id);
-
 		boolean result =false;
 		if(product==null) {
 			result=true;
@@ -75,6 +106,7 @@ public class MDS {
 			keyMap.put(id, product); // Add the product to the treemap
 		} else {// when entry already exists
 			Money oldPrice = product.getPrice();
+			//Set<Long> oldDescList = product.getDescription();
 			List<Long> oldDescList = product.getDescription();
 			product.setPrice(price);
 			if (list!=null && !list.isEmpty())
@@ -83,16 +115,40 @@ public class MDS {
 			if (!oldPrice.equals(price)) { // if new price is different, remove
 											// the product id from treeset of
 											// the old price
-				TreeSet<Long> priceSet = priceMap.get(oldPrice);
-				priceSet.remove(id);
-				if (priceSet.size() == 0)
-					priceMap.remove(oldPrice);
+				removePrice(oldPrice, id);
 			}
 
 			if(list!=null && !list.isEmpty())
 				removeDesc(id,oldDescList);
 		}
 		// adding the id to the new price's tree set
+		updatePrice(id, price);
+
+		// update the ids on the new description list
+		updateDesc(id, list);
+		return result?1:0;
+	}
+
+	private long removeDesc(long id, List<Long> oldDescList) {
+		long descSum=0;
+		for (Long desc : oldDescList) { // remove the old description list
+			TreeSet<Long> descSet = descMap.get(desc);
+			descSum += desc;
+			if (descSet != null) {
+				descSet.remove(id);
+				
+				if (descSet.size() == 0) // if a particular description
+											// value does not have any ids,
+											// remove the description value
+											// from hashmap
+					descMap.remove(desc);
+			}
+		}
+		return descSum;
+		
+	}
+
+	private void updatePrice(long id, Money price) {
 		TreeSet<Long> priceSet = priceMap.get(price);
 		if (priceSet == null) {
 			priceSet = new TreeSet<>();
@@ -100,8 +156,14 @@ public class MDS {
 			priceMap.put(price, priceSet);
 		} else
 			priceSet.add(id); // update the ids on new price
-
-		// update the ids on the new description list
+	}
+	private void removePrice(Money price, long id) {
+		TreeSet<Long> priceSet = priceMap.get(price);
+		priceSet.remove(id);
+		if (priceSet.size() == 0)
+			priceMap.remove(price);
+	}
+	private void updateDesc(long id, List<Long> list) {
 		for (Long desc : list) {
 			TreeSet<Long> descSet = descMap.get(desc);
 			if (descSet == null) {
@@ -111,26 +173,7 @@ public class MDS {
 			} else
 				descSet.add(id);
 		}
-		//printMaps();
-		return result?1:0;
 	}
-
-	private void removeDesc(long id, List<Long> oldDescList) {
-		
-		for (Long desc : oldDescList) { // remove the old description list
-			TreeSet<Long> descSet = descMap.get(desc);
-			if (descSet != null) {
-				descSet.remove(id);
-				if (descSet.size() == 0) // if a particular description
-											// value does not have any ids,
-											// remove the description value
-											// from hashmap
-					descMap.remove(desc);
-			}
-		}
-		
-	}
-
 	private void printMaps() {
 		System.out.println("KeyMap : " + keyMap.size());
 		for (Long id : keyMap.keySet()) {
@@ -177,22 +220,11 @@ public class MDS {
 		Product product = keyMap.get(id);
 		long descSum = 0;
 		if (product != null) {
-			List<Long> DescList = product.getDescription();
+			//Set<Long> descList = product.getDescription();
+			List<Long> descList = product.getDescription();
 			// removing id from keymap
 			keyMap.remove(id);
-			for (Long desc : DescList) { // removing the id from description
-											// list
-				descSum += desc;
-				TreeSet<Long> descSet = descMap.get(desc);
-				if (descSet != null) {
-					descSet.remove(id);
-					if (descSet.size() == 0) // if a particular description
-												// value does not have any ids,
-												// remove the description value
-												// from hashmap
-						descMap.remove(desc);
-				}
-			}
+			descSum = removeDesc(id, descList);			
 			// removing id from price treeset
 			Money Price = product.getPrice();
 			TreeSet<Long> priceSet = priceMap.get(Price);
