@@ -1,27 +1,27 @@
-/** Starter code for LP3
- *  @author
+/**
+ * 
+ * @author pushpita panigrahi - pxp171530
+ * @author deeksha lakshmeesh mestha - dxm172630
+ * @author sneha hulivan girisha - sxh173730
+ * @author akash chand - axc173730 
+ * 
+ * MDS class implements multi-dimensional search for objects having id, price(in dollar and cents) and list of description as long values
  */
-
-// Change to your net id
 package axc173730;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-// If you want to create additional classes, place them in this file as subclasses of MDS
-
 public class MDS {
-	// Add fields of MDS here
 
 	TreeMap<Long, Product> keyMap;
-	HashMap<Money, TreeSet<Long>> priceMap;
 	HashMap<Long, TreeSet<Long>> descMap;
+
 	private class Product {
 		private Money price;
 		private List<Long> description;
@@ -46,58 +46,38 @@ public class MDS {
 		public void setDescription(List<Long> description) {
 			this.description = new LinkedList<>(description);
 		}
+		
+		
 
 	}
-//	private class Product {
-//		private Money price;
-//		private Set<Long> description;
-//
-//		public Product(Money price, List<Long> list) {
-//			this.price = price;
-//			this.description = new HashSet<>(list);
-//		}
-//
-//		public Money getPrice() {
-//			return price;
-//		}
-//
-//		public void setPrice(Money price) {
-//			this.price = price;
-//		}
-//
-//		public Set<Long> getDescription() {
-//			return description;
-//		}
-//
-//		public void setDescription(List<Long> description) {
-//			this.description = new HashSet<>(description);
-//		}
-//
-//		
-//
-//	}
 
 	// Constructors
 	public MDS() {
 		keyMap = new TreeMap<>();
-		priceMap = new HashMap<>();
+		//priceMap = new HashMap<>();
 		descMap = new HashMap<>();
 	}
 
-	/*
-	 * Public methods of MDS. Do not change their signatures.
-	 * __________________________________________________________________ a.
-	 * Insert(id,price,list): insert a new item whose description is given in
-	 * the list. If an entry with the same id already exists, then its
-	 * description and price are replaced by the new values, unless list is null
-	 * or empty, in which case, just the price is updated. Returns 1 if the item
-	 * is new, and 0 otherwise.
+
+	/**
+	 * Adds new item to the store. Updates the price and description if item already
+	 * present. If only price is supplied then updates only price keeping the old
+	 * description
+	 * 
+	 * @param id,
+	 *            item id to be added
+	 * @param price,
+	 *            price of item to be added
+	 * @param list,
+	 *            list of long values for description of item to be added
+	 * @return 1 if new item is added to store, 0 if item is updated or could not be
+	 *         added
 	 */
 	public int insert(long id, Money price, java.util.List<Long> list) {
-
 		List<Long> deduped = list.stream().distinct().collect(Collectors.toList());
 		list = deduped;
 		Product product = keyMap.get(id);
+
 		boolean result =false;
 		if(product==null) {
 			result=true;
@@ -105,65 +85,17 @@ public class MDS {
 
 			keyMap.put(id, product); // Add the product to the treemap
 		} else {// when entry already exists
-			Money oldPrice = product.getPrice();
-			//Set<Long> oldDescList = product.getDescription();
 			List<Long> oldDescList = product.getDescription();
 			product.setPrice(price);
 			if (list!=null && !list.isEmpty())
 				product.setDescription(list);
 
-			if (!oldPrice.equals(price)) { // if new price is different, remove
-											// the product id from treeset of
-											// the old price
-				removePrice(oldPrice, id);
-			}
 
 			if(list!=null && !list.isEmpty())
 				removeDesc(id,oldDescList);
 		}
-		// adding the id to the new price's tree set
-		updatePrice(id, price);
 
 		// update the ids on the new description list
-		updateDesc(id, list);
-		return result?1:0;
-	}
-
-	private long removeDesc(long id, List<Long> oldDescList) {
-		long descSum=0;
-		for (Long desc : oldDescList) { // remove the old description list
-			TreeSet<Long> descSet = descMap.get(desc);
-			descSum += desc;
-			if (descSet != null) {
-				descSet.remove(id);
-				
-				if (descSet.size() == 0) // if a particular description
-											// value does not have any ids,
-											// remove the description value
-											// from hashmap
-					descMap.remove(desc);
-			}
-		}
-		return descSum;
-		
-	}
-
-	private void updatePrice(long id, Money price) {
-		TreeSet<Long> priceSet = priceMap.get(price);
-		if (priceSet == null) {
-			priceSet = new TreeSet<>();
-			priceSet.add(id);
-			priceMap.put(price, priceSet);
-		} else
-			priceSet.add(id); // update the ids on new price
-	}
-	private void removePrice(Money price, long id) {
-		TreeSet<Long> priceSet = priceMap.get(price);
-		priceSet.remove(id);
-		if (priceSet.size() == 0)
-			priceMap.remove(price);
-	}
-	private void updateDesc(long id, List<Long> list) {
 		for (Long desc : list) {
 			TreeSet<Long> descSet = descMap.get(desc);
 			if (descSet == null) {
@@ -173,36 +105,39 @@ public class MDS {
 			} else
 				descSet.add(id);
 		}
+		return result?1:0;
 	}
-	private void printMaps() {
-		System.out.println("KeyMap : " + keyMap.size());
-		for (Long id : keyMap.keySet()) {
-			System.out.print(id + " : " + keyMap.get(id).price + "\t");
-			for (Long desc : keyMap.get(id).getDescription()) {
-				System.out.print(desc + "\t");
+
+	/**
+	 * Deletes the item description from store
+	 * @param id - product id
+	 * @param oldDescList - product's old description list
+	 * @return
+	 */
+	private long removeDesc(long id, List<Long> oldDescList) {
+		long descSum = 0;
+		for (Long desc : oldDescList) { // remove the old description list
+			descSum+=desc;
+			TreeSet<Long> descSet = descMap.get(desc);
+			if (descSet != null) {
+				descSet.remove(id);
+				// if a particular description value does not have any ids, remove the
+				// description value from hashmap
+				if (descSet.size() == 0)
+					descMap.remove(desc);
 			}
-			System.out.println();
 		}
-		System.out.println();
-		System.out.println("PriceMap : " + priceMap.size());
-		for (Money price : priceMap.keySet()) {
-			System.out.print(price + " : ");
-			for (Long ids : priceMap.get(price)) {
-				System.out.print(ids + "	");
-			}
-			System.out.println();
-		}
-		System.out.println("DescMap : " + descMap.size());
-		for (Long desc : descMap.keySet()) {
-			System.out.print(desc + " : ");
-			for (Long ids : descMap.get(desc)) {
-				System.out.print(ids + "	");
-			}
-			System.out.println();
-		}
+		return descSum;
 	}
 
 	// b. Find(id): return price of item with given id (or 0, if not found).
+	/**
+	 * Returns the price of the item with given id, 0 if item not found
+	 * 
+	 * @param id
+	 *            to find price for
+	 * @return price of item
+	 */
 	public Money find(long id) {
 		Product product = keyMap.get(id);
 		if (product == null)
@@ -211,37 +146,33 @@ public class MDS {
 		return product.getPrice();
 	}
 
-	/*
-	 * c. Delete(id): delete item from storage. Returns the sum of the long ints
-	 * that are in the description of the item deleted, or 0, if such an id did
-	 * not exist.
+	/**
+	 * Deletes an item with given id from store. returns 0 if no such item
+	 * 
+	 * @param id,
+	 *            description to be matched with
+	 * @return sum of all ints in the description of deleted item
 	 */
 	public long delete(long id) {
 		Product product = keyMap.get(id);
 		long descSum = 0;
 		if (product != null) {
-			//Set<Long> descList = product.getDescription();
 			List<Long> descList = product.getDescription();
 			// removing id from keymap
 			keyMap.remove(id);
-			descSum = removeDesc(id, descList);			
-			// removing id from price treeset
-			Money Price = product.getPrice();
-			TreeSet<Long> priceSet = priceMap.get(Price);
-			priceSet.remove(id);
-			if (priceSet.size() == 0)
-				priceMap.remove(Price);
+			descSum = removeDesc(id, descList);
 
 		}
-		//printMaps();
 		return descSum;
 	}
 
-	/*
-	 * d. FindMinPrice(n): given a long int, find items whose description
-	 * contains that number (exact match with one of the long ints in the item's
-	 * description), and return lowest price of those items. Return 0 if there
-	 * is no such item.
+	/**
+	 * Gives the min price among all items containing a given description. Returns 0
+	 * if no item satisfy conditions
+	 * 
+	 * @param n,
+	 *            description to be matched with
+	 * @return min price among all products satisfying given condition
 	 */
 	public Money findMinPrice(long n) {
 		TreeSet<Long> descSet = descMap.get(n);
@@ -261,10 +192,13 @@ public class MDS {
 		return lowest;
 	}
 
-	/*
-	 * e. FindMaxPrice(n): given a long int, find items whose description
-	 * contains that number, and return highest price of those items. Return 0
-	 * if there is no such item.
+	/**
+	 * Gives the max price among all items containing a given description. Returns 0
+	 * if no item satisfy conditions
+	 * 
+	 * @param n,
+	 *            description to be matched with
+	 * @return max price among all products satisfying given condition
 	 */
 	public Money findMaxPrice(long n) {
 		TreeSet<Long> descSet = descMap.get(n);
@@ -284,10 +218,17 @@ public class MDS {
 		return highest;
 	}
 
-	/*
-	 * f. FindPriceRange(n,low,high): given a long int n, find the number of
-	 * items whose description contains n, and in addition, their prices fall
-	 * within the given range, [low, high].
+	/**
+	 * Gives the number of items containing given description and within given price
+	 * range
+	 * 
+	 * @param n,
+	 *            description to be matched with
+	 * @param low,
+	 *            lowest value for price range, inclusive
+	 * @param high
+	 *            highest value for price range, inclusive
+	 * @return number of items satisfying both conditions
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
 		int result = 0;
@@ -296,44 +237,59 @@ public class MDS {
 		// for every id, get the price and check if it falls in range
 		for (Long id : idsMatchingDesc) {
 			Money price = keyMap.get(id).price;
-			if (price.compareTo(low) >= 0 && price.compareTo(high) < 0) {
+			if (price.compareTo(low) >= 0 && price.compareTo(high) <= 0) {
 				result++;
 			}
 		}
 		return result;
 	}
 
-	/*
-	 * g. PriceHike(l,h,r): increase the price of every product, whose id is in
-	 * the range [l,h] by r%. Discard any fractional pennies in the new prices
-	 * of items. Returns the sum of the net increases of the prices.
+
+	/**
+	 * increases the price of even item whose id is within given range by given rate
+	 * percentage
+	 * 
+	 * @param l,
+	 *            lower limit for ids
+	 * @param h,
+	 *            highest limit for ids
+	 * @param rate,
+	 *            % rate to be increased, eg: 10, 20.5, etc
+	 * @return sum of net increases of the prices
 	 */
 	public Money priceHike(long l, long h, double rate) {
-		Money price,netIncrease;
-		Double increasedPrice = 0.0,increase = 0.0,sum = 0.0;
+		Money price, newPrice=new Money(), netIncrease=new Money();
+		BigDecimal newRate = BigDecimal.valueOf(rate).divide(BigDecimal.valueOf(100));
+		long increase = 0, increasedPrice = 0, sum = 0;
 		for(Long id : keyMap.keySet()) {
 			if(id>=l && id<=h) {
 				Product product = keyMap.get(id);
 				price = product.getPrice();
-				increase = Double.parseDouble(price.toString())*rate/100;
-				increasedPrice = Double.parseDouble(price.toString())+increase;
-				price = new Money(increasedPrice+"");
-				product.setPrice(price);
-				sum += increase;
-				}
+				long priceInDouble = Money.getMoney(price);
+				increase = newRate.multiply(BigDecimal.valueOf(priceInDouble)).longValue();
+				increasedPrice = priceInDouble + increase;
+				newPrice = Money.putMoney(increasedPrice);
+				product.setPrice(newPrice);
+				sum = sum + increase;
+			}
 		}
-		netIncrease = new Money(sum+"");
+		
+		netIncrease = Money.putMoney(sum);
 		return netIncrease;
 	}
 
-	/*
-	 * h. RemoveNames(id, list): Remove elements of list from the description of
-	 * id. It is possible that some of the items in the list are not in the id's
-	 * description. Return the sum of the numbers that are actually deleted from
-	 * the description of id. Return 0 if there is no such id.
+	/**
+	 * Remove elements of list from the description of id. Returns 0 if there is no
+	 * such id.
+	 * 
+	 * @param id,
+	 *            id of item to be updated
+	 * @param list,
+	 *            list of descriptions to be deleted from given item
+	 * @return sum of the numbers that are actually deleted from description of id
 	 */
 	public long removeNames(long id, java.util.List<Long> list) {
-		long sum = 0;//to keep track of number of elements of description removed from id's
+		long sum = 0;//to keep track of sum of elements of description removed from id's
 		if (list != null) {
 			//iterate through the list passed.If the id is present in the description set of each description 
 			//then remove the id from descMap and remove the description element from the keyMap.
@@ -341,7 +297,7 @@ public class MDS {
 				TreeSet<Long> descSet = descMap.get(desc);
 				if (descSet != null) {
 					if (descSet.contains(id)) {
-						sum++;
+						sum+=desc;
 						descSet.remove(id);
 						Product product = keyMap.get(id);
 						product.description.remove(desc);
@@ -353,11 +309,9 @@ public class MDS {
 				}
 				
 		}
-		//printMaps();
 		return sum;
 	}
 
-	// Do not modify the Money class in a way that breaks LP3Driver.java
 	public static class Money implements Comparable<Money> {
 		long d;
 		int c;
@@ -395,25 +349,68 @@ public class MDS {
 			return c;
 		}
 
-		public int compareTo(Money other) { // Complete this, if needed
-
-			return new Double(Double.parseDouble(this.toString())).compareTo(Double.parseDouble(other.toString()));
+		/**
+		 * Compares Money objects, returns -1 if this money < other money, 0 if equal,
+		 * +1 if this money > other money
+		 */
+		public int compareTo(Money other) {
+			if (this.d == other.d) {
+				if (this.c == other.c)
+					return 0;
+				else if (this.c < other.c)
+					return -1;
+				else
+					return 1;
+			} else if (this.d < other.d)
+				return -1;
+			else
+				return 1;
 		}
-
+		
 		public String toString() {
-			return d + "." + c;
+			if (c > 10)
+				return d + "." + c;
+			else
+				return d + ".0" + c;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-
 			return this.toString().equals(((Money) obj).toString());
 		}
 
 		@Override
 		public int hashCode() {
-
 			return this.toString().hashCode();
+		}
+		
+		/**
+		 * Converts a Money object to Long object, last 2 digits of long should be
+		 * treated as cents, eg: 24.57 -> 2457
+		 * 
+		 * @param money,
+		 *            Money object to be converted to long
+		 * @return money value in long
+		 */
+		public static long getMoney(Money money) {
+			return money.d * 100 + money.c;
+
+		}
+
+		/**
+		 * Converts a Long to Money object, takes last 2 digits as cents eg: 567 -> 5.67
+		 * 
+		 * @param price,
+		 *            Long value for money
+		 * @return money as Money object
+		 */
+		public static Money putMoney(long price) throws NumberFormatException {
+
+		
+			long d = price/100;
+			long cents = price - (d*100);
+			int c= (int)cents;
+			return new Money(d, c);
 		}
 	}
 
